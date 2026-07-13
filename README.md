@@ -1,6 +1,6 @@
 # DistributedWorkflowPatterns
 
-> Enterprise-grade reference implementation of distributed workflow patterns in .NET.
+> Enterprise reference implementation of distributed workflow patterns in .NET.
 
 ![.NET](https://img.shields.io/badge/.NET-8-512BD4)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-blue)
@@ -9,297 +9,384 @@
 
 ---
 
-## Overview
+# Overview
 
-Distributed systems rarely fail because of business logic—they fail because coordinating work across independent services is difficult.
+Distributed systems become challenging when multiple independent components need to coordinate reliable execution.
 
-This project focuses on implementing reusable workflow patterns rather than application-specific business scenarios.
+This project demonstrates reusable distributed workflow patterns instead of application-specific business logic.
 
-Instead of demonstrating an Order Service or Payment Service, this repository provides architectural building blocks for designing reliable distributed workflows that can be reused across different domains.
+The repository does not implement scenarios such as:
 
-The project follows Clean Architecture principles and keeps workflow coordination independent from any messaging technology.
+* Order Processing
+* Payment
+* Reservation
+* Shopping Cart
 
----
+Instead, it provides architectural building blocks for:
 
-## Vision
+* Workflow orchestration
+* Saga Pattern
+* Message-driven communication
+* Compensation
+* Retry strategies
+* Correlation
+* Technology-independent messaging
 
-Build a reusable reference implementation for enterprise distributed workflow patterns.
-
-The primary goal is to demonstrate architectural concepts such as:
-
-- Workflow orchestration
-- Saga Pattern
-- Message-driven communication
-- Compensation
-- Correlation
-- Retry strategies
-- Technology-independent messaging abstractions
-
-RabbitMQ is only the first transport implementation.
-
-The architecture is designed so that other providers such as Kafka, Azure Service Bus or MassTransit can be introduced without changing the core workflow engine.
-
----
-
-# Why this project?
-
-Many examples available online are tightly coupled to a specific business domain:
-
-- Shopping Cart
-- Order Processing
-- Payment
-- Hotel Reservation
-
-Those examples make it difficult to reuse architectural ideas.
-
-This repository intentionally avoids business-specific entities.
-
-Instead, it focuses on generic workflow execution patterns that can serve as reusable building blocks for enterprise systems.
+RabbitMQ is the first transport implementation.
+The architecture is designed to allow future integration with Kafka, Azure Service Bus, or MassTransit without changing the core workflow engine.
 
 ---
 
 # Architecture
 
-The solution follows Clean Architecture.
+The solution follows Clean Architecture principles.
 
 ```
-
-```
-                   API
-                    │
-                    │
-             Application
-              ↙       ↘
-         Domain   BuildingBlocks
-                    ▲
-                    │
+                    API
+                     |
+                     v
+              Application
+              /        \
+             v          v
+        Domain     BuildingBlocks
+                     |
+                     v
              Infrastructure
 ```
 
-Dependencies always point toward the domain.
+Dependency direction always moves toward the core.
 
 Infrastructure contains implementation details.
 
-Domain contains no infrastructure dependencies.
+Domain contains workflow concepts without infrastructure dependencies.
 
 ---
 
 # Solution Structure
 
 ```
-
 DistributedWorkflowPatterns
 
-│
-├── src
-│ ├── DistributedWorkflowPatterns.Api
-│ ├── DistributedWorkflowPatterns.Application
-│ ├── DistributedWorkflowPatterns.Domain
-│ ├── DistributedWorkflowPatterns.Infrastructure
-│ ├── DistributedWorkflowPatterns.Contracts
-│ └── DistributedWorkflowPatterns.BuildingBlocks
-│
-├── tests
-│
-├── docs
-│
-└── assets
+src/
 
+├── DistributedWorkflowPatterns.Api
+
+├── DistributedWorkflowPatterns.Application
+
+├── DistributedWorkflowPatterns.Domain
+
+├── DistributedWorkflowPatterns.Infrastructure
+
+├── DistributedWorkflowPatterns.Contracts
+
+└── DistributedWorkflowPatterns.BuildingBlocks
 ```
 
 ---
 
-# Current MVP Scope
+# Core Responsibilities
 
-Version 1 focuses on building the smallest reusable workflow engine.
+## Domain
 
-Included:
+Contains the core workflow model:
 
-- Workflow Definition
-- Workflow Steps
-- Workflow State Management
-- Message Abstractions
-- Saga Orchestration
-- Compensation Strategy
+* Workflow
+* Workflow Step
+* Workflow State
+* Workflow Execution
+* Workflow Compensation
 
-Not included yet:
-
-- Database
-- Authentication
-- Dashboard
-- Docker
-- Kubernetes
-- Persistence
-- Event Sourcing
+No dependency on external technologies.
 
 ---
 
-# Planned Features
+## Application
 
-## Workflow Engine
+Responsible for workflow coordination:
 
-- Workflow Definition
-- Workflow Execution
-- Step Execution
-- State Transitions
-
----
-
-## Messaging
-
-- Generic Message Bus
-- Publisher
-- Subscriber
-- Correlation
-- Message Metadata
+* Workflow execution
+* Saga orchestration
+* Compensation handling
+* Application use cases
 
 ---
 
-## Saga
+## BuildingBlocks
 
-- Saga Orchestrator
-- Compensation
-- Retry
-- Failure Handling
+Contains reusable abstractions:
+
+* Messaging abstractions
+* Correlation concepts
+* Retry contracts
+* Compensation contracts
 
 ---
 
 ## Infrastructure
 
-Initial implementation:
+Contains external implementations:
 
-- RabbitMQ
-
-Future implementations:
-
-- Kafka
-- Azure Service Bus
-- MassTransit
+* RabbitMQ transport
+* OpenTelemetry configuration
+* External adapters
 
 ---
 
-# Technologies
+## Contracts
 
-- .NET 8
-- ASP.NET Core
-- C#
-- Clean Architecture
+Contains shared communication contracts:
 
-Messaging:
-
-- RabbitMQ
-
-Future:
-
-- Kafka
-- Azure Service Bus
+* Commands
+* Events
+* Message definitions
 
 ---
 
-# Project Roadmap
+# MVP Scope (Version 1)
 
-## Phase 1
+Implemented:
 
-- Solution Structure
-- Documentation
-- Domain Model
+* Workflow Definition
+* Workflow Steps
+* Workflow State Management
+* Workflow Execution Model
+* Messaging Abstractions
+* Saga Orchestration
+* Compensation Strategy
+* RabbitMQ Transport
+* Retry Abstractions
+* Saga Choreography Contracts
+* OpenTelemetry Integration
+* Persistence Contract
 
----
+Not included:
 
-## Phase 2
-
-- Messaging Abstractions
-
----
-
-## Phase 3
-
-- RabbitMQ Transport
-
----
-
-## Phase 4
-
-- Workflow Runtime
-
----
-
-## Phase 5
-
-- Saga Orchestrator
+* Database implementation
+* Authentication
+* Dashboard
+* Docker/Kubernetes deployment
+* Event Sourcing
 
 ---
 
-## Phase 6
+# Workflow Execution Flow
 
-- Compensation Engine
+```
+Client
+ |
+ v
+Workflow Definition
+ |
+ v
+Workflow Coordinator
+ |
+ v
+Execute Workflow Step
+ |
+ v
+Publish Message
+ |
+ v
+External Component
+ |
+ +------------+
+ | Success    |
+ +------------+
+ |
+ v
+Next Step
+
+
+Failure:
+
+Workflow Coordinator
+ |
+ v
+Compensation Flow
+ |
+ v
+Rollback Previous Steps
+```
 
 ---
 
-## Phase 7
+# Saga Orchestration Flow
 
-- Advanced Retry Policies
+```
+Coordinator
+
+    |
+    v
+
+Execute Step A
+
+    |
+    v
+
+Execute Step B
+
+    |
+    v
+
+Failure Occurs
+
+    |
+    v
+
+Compensate Previous Steps
+```
+
+The orchestrator manages:
+
+* Workflow state
+* Executed steps
+* Failure handling
+* Compensation execution
 
 ---
 
-## Phase 8
+# Development Roadmap
 
-- Saga Choreography
+## Phase 1 - Foundation
+
+Completed:
+
+* Solution structure
+* Clean Architecture setup
+* Domain modeling
 
 ---
 
-## Phase 9
+## Phase 2 - Messaging Abstractions
 
-- OpenTelemetry Integration
+Completed:
+
+* IMessageBus abstraction
+* Publisher/Subscriber contracts
+* Message metadata concepts
 
 ---
 
-## Phase 10
+## Phase 3 - RabbitMQ Transport
 
-- Persistence
+Completed:
+
+* RabbitMQ adapter
+* Connection handling
+* Message publishing and consuming
+
+---
+
+## Phase 4 - Workflow Runtime
+
+Completed:
+
+* Workflow execution concepts
+* Step management
+* State transitions
+
+---
+
+## Phase 5 - Saga Orchestrator
+
+Completed:
+
+* Workflow coordination
+* Saga execution flow
+* Failure handling
+
+---
+
+## Phase 6 - Compensation Engine
+
+Completed:
+
+* Compensation contracts
+* Recovery strategy
+
+---
+
+## Phase 7 - Retry Policies
+
+Completed:
+
+* Retry abstractions
+* Transient failure handling
+
+---
+
+## Phase 8 - Saga Choreography
+
+Completed:
+
+* Event contracts
+* Command contracts
+* Decoupled communication model
+
+---
+
+## Phase 9 - OpenTelemetry Integration
+
+Completed:
+
+* OpenTelemetry setup
+* Trace instrumentation foundation
+
+---
+
+## Phase 10 - Persistence Contract
+
+Completed:
+
+* Persistence abstraction
+* Future database provider support
 
 ---
 
 # Design Principles
 
-The project follows these principles:
+The project follows:
 
-- Clean Architecture
-- Separation of Concerns
-- Technology Independence
-- Message-driven Design
-- Extensibility
-- High Cohesion
-- Low Coupling
+* Clean Architecture
+* Separation of Concerns
+* Technology Independence
+* Low Coupling
+* High Cohesion
+* Extensible Design
+* Message-driven Architecture
 
 ---
 
-# Learning Objectives
+# Technology Stack
 
-This repository demonstrates practical implementation of:
-
-- Distributed Systems
-- Enterprise Messaging
-- Workflow Engines
-- Saga Pattern
-- Compensation Pattern
-- Retry Strategies
-- Correlation Management
-- Infrastructure Abstraction
+* .NET 8
+* ASP.NET Core
+* C#
+* Clean Architecture
+* RabbitMQ
+* OpenTelemetry
 
 ---
 
 # Repository Status
 
-Current Status
+Current Version:
 
- Under Active Development
+**v1.0.0**
 
-The project is intentionally built incrementally.
+Status:
 
-Each Git commit introduces a small, meaningful architectural improvement.
+✅ MVP Completed
 
-The commit history is part of the documentation.
+The first version focuses on architecture and reusable distributed workflow patterns.
+
+Future versions will add:
+
+* Executable workflow examples
+* Automated tests
+* Database providers
+* Additional messaging transports
+* Monitoring capabilities
 
 ---
 
