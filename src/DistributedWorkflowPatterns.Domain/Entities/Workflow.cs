@@ -8,7 +8,7 @@ public sealed class Workflow
 
     public string Name { get; }
 
-    public IReadOnlyCollection<WorkflowStep> Steps => _steps;
+    public IReadOnlyCollection<WorkflowStep> Steps => _steps.AsReadOnly();
 
     public Workflow(Guid id, string name)
     {
@@ -18,6 +18,13 @@ public sealed class Workflow
 
     public void AddStep(WorkflowStep step)
     {
+        ArgumentNullException.ThrowIfNull(step);
+
         _steps.Add(step);
+    }
+
+    public WorkflowStep? GetFirstStep()
+    {
+        return _steps.FirstOrDefault();
     }
 }
