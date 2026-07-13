@@ -1,21 +1,49 @@
+using DistributedWorkflowPatterns.Application.Compensation;
 using DistributedWorkflowPatterns.Application.Workflows;
 
 namespace DistributedWorkflowPatterns.Application.Services;
 
 public class WorkflowExecutionService
 {
-    public async Task ExecuteAsync(DocumentApprovalWorkflow workflow)
+    private readonly CompensationService _compensationService;
+
+
+    public WorkflowExecutionService(
+        CompensationService compensationService)
     {
-        Console.WriteLine(
-            $"Starting workflow: {workflow.Name}");
+        _compensationService = compensationService;
+    }
 
-        foreach (var step in workflow.Steps)
+
+    public async Task ExecuteAsync(
+        DocumentApprovalWorkflow workflow)
+    {
+        var executedSteps = new List<string>();
+
+        try
         {
-            await ExecuteStepAsync(step);
-        }
+            Console.WriteLine(
+                $"Starting workflow: {workflow.Name}");
 
-        Console.WriteLine(
-            $"Workflow completed: {workflow.Name}");
+
+            foreach (var step in workflow.Steps)
+            {
+                await ExecuteStepAsync(step);
+
+                executedSteps.Add(step);
+            }
+
+
+            Console.WriteLine(
+                $"Workflow completed: {workflow.Name}");
+        }
+        catch(Exception)
+        {
+            await _compensationService
+                .CompensateAsync(executedSteps);
+
+            throw;
+        }
     }
 
 
